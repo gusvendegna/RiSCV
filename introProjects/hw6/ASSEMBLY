@@ -1,0 +1,97 @@
+.data
+	.align 2
+		sumPrompt: .asciz "Summation: "
+		newLine: .asciz "\n"
+.text
+
+.globl binarySearch
+#add a3, zero, zero # for testing
+#addi a4, a4, 1
+binarySearch:
+
+	add t2, zero, zero  
+	add t0, zero, zero  # initialize equal to 0
+	addi t0, zero, 4   # set t0 equal to 4
+	mul t2, a3, t0     # t1 = start index*4
+	add t5, t2, a2     # adding t1 to a2
+	add t2, zero, zero  
+	
+	
+	sub t2, a4, a3     # add one to end index
+	addi t2, t2, 1
+	add t4, zero, zero  # what index is the number in
+	add t3, zero, zero    # index counter
+	add t0, zero, zero
+	
+	
+	
+	LoopSum:
+	
+	lw t1, 0(t5)        # load number from array into t1
+	
+	
+	
+	addi t5, t5, 4      # point to next element in array
+	addi t3, t3, 1      # one less element remaining in array
+	
+	bne t1, a5, notAddress
+	add t4, t3, zero
+	notAddress:
+
+	add t0, t0, t1   # add em up
+
+	bne t3, t2, LoopSum  # if num of elements remaining != 0, loop, else jump back
+	                     # SUM STORED IN T0
+	
+	
+	
+	
+	la a0, sumPrompt    # print summation:
+	addi a7, zero, 4
+	ecall
+	
+	add a0, zero, t0    # print integer sum
+	addi a7, zero, 1
+	ecall
+	
+	la a0, newLine    # print new Line
+	addi a7, zero, 4
+	ecall
+	
+	addi t1, zero, 2   # set t1 equal to 2 for division. Not needed after this
+	add t0, a3, a4     # get size of array
+	div t0, t0, t1     # find middle. T0 IS THE MIDDLE index value. We need to check if a2[t0] is equal to a5
+	add t1, t0, zero
+	
+	
+
+	
+	mul t0, t0, a7
+	add t0, t0, a2    # get current middle
+	lw t0, 0(t0)      #This is the middle value, NOT index value. t1 is index
+	
+	
+	beq t0, a5, Done
+	
+	blt t0, a5, lessThan ###########
+	add a4, zero, t1
+	addi a4, a4, -1      #shift to include that index
+	beq x0, x0, next
+	lessThan:            ############
+	add a3, zero, t1     
+	addi a3, a3, 1      #shift to include that index
+	
+	
+	next:
+	
+	addi sp, sp, -4  # put current RA in stack
+	sw ra, 0(sp)
+	
+	jal ra, binarySearch
+	Done:
+	
+	lw ra, 0(sp)     #load previous RA and re-decrement stack
+	addi sp, sp, 4
+	
+	add a0, zero, t1 #load index value into return register
+	jalr zero, ra, 0  # return
