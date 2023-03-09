@@ -1,0 +1,160 @@
+# Arguments
+
+# a2	address of grid
+# a3	xMax
+# a4	yMax
+# a5	current x index
+# a6 	current y index
+# a7	current stack length 
+
+.globl printPaths
+
+printPaths:
+
+	# base case
+	ble a3, x0, baseCase
+	ble a4, x0, baseCase
+	beq x0, x0, notBase    # neither are true, skip the base case code
+	
+	baseCase:
+	jalr zero, ra, 0
+	notBase:
+	
+	addi sp, sp, -12        # move all registers on to the stack
+	sw ra, 0(sp)
+	sw a2, 4(sp)
+	sw a3, 8(sp)
+	
+	
+	mul t0, a6, a3      # t0 = curX + curY * xMax
+	add t0, t0, a5
+	
+	slli t0, t0, 2
+	add a3, a2, t0
+	add a2, a7, x0
+	lw a3, 0(a3)      # a3 is now equal to grid[curX + curY * xMax]
+	
+	jal ra, addValueToStack
+	
+	lw ra, 0(sp)          # load all registers back from stack
+	lw a2, 4(sp)
+	lw a3, 8(sp)
+	addi sp, sp, 12       # move stack pointer back to original location
+	
+
+	
+	addi a7, a7, 1        # add one to stack lenth
+	
+	# check to see if last cell is reached
+	addi t0, a4, -1
+	addi t1, a3, -1
+	bne a6, t0, notLastCell 
+	bne a5, t1, notLastCell # if both of these things ARE actually equal:
+	
+	addi sp, sp, -12        # move all registers on to the stack
+	sw ra, 0(sp)
+	sw a2, 4(sp)
+	sw a7, 8(sp)
+	addi a2, a7, 0  # must set length of stack into a2 for grader script
+	
+	
+	jal ra, printStack
+	
+	
+	lw ra, 0(sp)          # load all registers back from stack
+	lw a2, 4(sp)
+	lw a7, 8(sp)
+	addi sp, sp, 12  
+	
+	
+	jalr zero, ra, 0 # return
+	
+	notLastCell:
+	
+	addi t0, a6, 1     # t0 = curY+1
+	
+	bge t0, a4, dontMoveDown
+	
+	addi sp, sp, -28        # move all registers on to the stack
+	sw ra, 0(sp)
+	sw a2, 4(sp)
+	sw a3, 8(sp)
+	sw a4, 12(sp)
+	sw a5, 16(sp)
+	sw a6, 20(sp)
+	sw a7, 24(sp)
+	addi a6, a6, 1          # curY+1
+	
+	jal ra, printPaths
+	
+	lw ra, 0(sp)          # load all registers back from stack
+	lw a2, 4(sp)
+	lw a3, 8(sp)
+	lw a4, 12(sp)
+	lw a5, 16(sp)
+	lw a6, 20(sp)
+	lw a7, 24(sp)
+	addi sp, sp, 28  
+	
+	
+	dontMoveDown:
+	
+	addi t0, a5, 1    # t0 = curX + 1
+	bge t0, a3, dontMoveRight # check to see if we need to move right
+	
+	addi sp, sp, -28        # move all registers on to the stack
+	sw ra, 0(sp)
+	sw a2, 4(sp)
+	sw a3, 8(sp)
+	sw a4, 12(sp)
+	sw a5, 16(sp)
+	sw a6, 20(sp)
+	sw a7, 24(sp)     # save old curY
+	addi a5, a5, 1    #curx+1
+	
+	jal ra, printPaths
+	
+	lw ra, 0(sp)         # load all registers back from stack
+	lw a2, 4(sp)
+	lw a3, 8(sp)
+	lw a4, 12(sp)
+	lw a5, 16(sp)
+	lw a6, 20(sp)
+	lw a7, 24(sp)
+	addi sp, sp, 28 
+	
+
+	
+	dontMoveRight:
+	
+	addi t0, a5, 1     # t0 = curX + 1
+	addi t1, a6, 1     # t1 = curY + 1
+	
+	bgt t1, a4, dontMoveDiag    # check to see if we can move diagonally
+	bgt t0, a3, dontMoveDiag    # check to see if we can move diagonally
+	
+	addi sp, sp, -28        # move all registers on to the stack
+	sw ra, 0(sp)
+	sw a2, 4(sp)
+	sw a3, 8(sp)
+	sw a4, 12(sp)
+	sw a5, 16(sp)
+	sw a6, 20(sp)
+	sw a7, 24(sp)
+	addi a5, a5, 1   # CurX+1
+	addi a6, a6, 1   #  curY+1
+	
+	jal ra, printPaths
+	
+	lw ra, 0(sp)          # load all registers back from stack
+	lw a2, 4(sp)
+	lw a3, 8(sp)
+	lw a4, 12(sp)
+	lw a5, 16(sp)
+	lw a6, 20(sp)
+	lw a7, 24(sp)
+	addi sp, sp, 28 
+	
+	dontMoveDiag:
+	
+	jalr zero, ra, 0  # return. At this point, we cannot move any further.
